@@ -11,6 +11,7 @@ import {
 import { useRef } from "react";
 import { screenToCanvas } from "./Camera";
 import {
+  appletResolveImage,
   blockIntersectBlocks,
   loadImage,
   makeZIndex,
@@ -180,7 +181,9 @@ export function useDragAndSelect() {
             imageCanvas.width = topBlock.width;
             imageCanvas.height = topBlock.height;
 
-            const image = await loadImage(topBlock.src);
+            const image = await loadImage(
+              await appletResolveImage(topBlock.src),
+            );
             const ctx = imageCanvas.getContext("2d")!;
             ctx.drawImage(image, 0, 0, imageCanvas.width, imageCanvas.height);
 

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { BlockType, PointType } from "./types";
 
 // load image as promise
@@ -38,4 +39,30 @@ export function blockIntersectBlocks(
       y + height > block.y
     );
   });
+}
+
+export async function appletResolveImage(src: string) {
+  if (window.location.origin.includes("usercontent.goog")) {
+    const noStartingSlash = src.startsWith("/") ? src.slice(1) : src;
+    const fetched = await fetch(noStartingSlash);
+    const blob = await fetched.blob();
+    const url = URL.createObjectURL(blob);
+    return url;
+  } else {
+    return src;
+  }
+}
+
+export function useImageHandler(src: string) {
+  const [resolvedSrc, setResolvedSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function main() {
+      const url = await appletResolveImage(src);
+      setResolvedSrc(url);
+    }
+    main();
+  }, [src]);
+
+  return resolvedSrc;
 }

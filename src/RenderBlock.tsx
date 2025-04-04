@@ -1,15 +1,11 @@
 import { useAtom } from "jotai";
 import { v4 as uuid } from "uuid";
-import {
-  BlockIdsAtom,
-  BlockMapAtom,
-  RenderPromptAtom,
-} from "./atoms";
+import { BlockIdsAtom, BlockMapAtom, RenderPromptAtom } from "./atoms";
 import { maxSize } from "./consts";
 import { useCreateBlock, useUpdateBlock } from "./hooks";
 import { predict } from "./modelUtils";
 import { RenderBlockType } from "./types";
-import { loadImage, makeZIndex } from "./utils";
+import { appletResolveImage, loadImage, makeZIndex } from "./utils";
 import { GenerateContentRequest } from "@google/generative-ai";
 
 const sides = ["top", "right", "bottom", "left"] as const;
@@ -58,7 +54,7 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       minY = Math.min(minY, imageBlock.y - block.y);
       maxX = Math.max(maxX, imageBlock.x - block.x + imageBlock.width);
       maxY = Math.max(maxY, imageBlock.y - block.y + imageBlock.height);
-      const image = await loadImage(imageBlock.src);
+      const image = await loadImage(await appletResolveImage(imageBlock.src));
       ctx.drawImage(
         image,
         imageBlock.x - block.x,
@@ -250,8 +246,6 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
         zIndex: makeZIndex(),
       });
     }
-
-    setLoadingMessage(null);
   }
 
   return (
