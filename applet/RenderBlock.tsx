@@ -7,6 +7,7 @@ import { predict } from "./modelUtils";
 import { RenderBlockType } from "./types";
 import { appletResolveImage, loadImage, makeZIndex } from "./utils";
 import { GenerateContentRequest } from "@google/generative-ai";
+import { Part } from "@google/genai";
 
 const sides = ["top", "right", "bottom", "left"] as const;
 
@@ -66,6 +67,7 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
 
     let image = canvas.toDataURL();
     let croppedImage = null;
+    let blurredCanvas = null;
     let blurredImage = null;
     if (imageActive) {
       croppedImage = document.createElement("canvas");
@@ -85,7 +87,7 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       );
       image = croppedImage.toDataURL();
 
-      const blurredCanvas = document.createElement("canvas");
+      blurredCanvas = document.createElement("canvas");
       blurredCanvas.width = croppedImage.width;
       blurredCanvas.height = croppedImage.height;
       const blurredCtx = blurredCanvas.getContext("2d")!;
@@ -163,8 +165,8 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       id,
       type: "image",
       src: blurredImage || image,
-      x: block.x + block.width + 16,
-      y: block.y,
+      x: block.x + (block.width - croppedImage!.width) / 2,
+      y: block.y + (block.height - croppedImage!.height) / 2,
       width: croppedImage ? croppedImage.width : block.width,
       height: croppedImage ? croppedImage.height : block.height,
       zIndex: makeZIndex(),
@@ -201,13 +203,10 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
     }
 
     const responseParts = await predict({
-      contents,
+      contents: contents.contents,
     });
-    console.log(responseParts)
-    return
 
-    let lastImagePart = null;
-
+    let lastImagePart: Part | null = null;
     for (const part of responseParts) {
       if (part.inlineData) {
         lastImagePart = part;

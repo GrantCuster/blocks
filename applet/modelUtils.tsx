@@ -7,19 +7,17 @@ export const predict = async ({
 }: {
   contents: ContentListUnion
 }) => {
-  console.log(contents);
   try {
    const result = await ai.models.generateContent({
       model: "gemini-2.0-flash-exp",
-      contents: contents,
+      contents,
       config: {
         temperature: 0.6,
         responseModalities: ["TEXT", "IMAGE"],
       },
     });
-    console.log(result.text);
 
-    return [];
+    return result.candidates![0].content!.parts!;
   } catch (error) {
     console.error("Error generating response:", error);
     throw error;
