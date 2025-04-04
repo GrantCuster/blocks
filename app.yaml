@@ -1,0 +1,14 @@
+runtime: python39
+service: blocks-lite
+
+default_expiration: '0s'
+
+handlers:
+  - url: /
+    static_files: dist/index.html
+    upload: dist/index.html
+    secure: always
+
+  - url: /(.*)
+    static_files: dist/\1
+    upload: dist/(.*)  

@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body, #root {
+  height: 100dvh;
+  font-size: 16px;
+  overflow: hidden;
+  font-family: monospace;
+}
+
+body {
+  background-color: theme('colors.neutral.900');
+  color: theme('colors.neutral.200');
+}
+
+input, textarea {
+  background-color: theme('colors.neutral.800');
+  color: theme('colors.neutral.200');
+}
+
+.border, .border-l, .border-t, .border-b, .border-r {
+  border-color: theme('colors.neutral.700');
+}
