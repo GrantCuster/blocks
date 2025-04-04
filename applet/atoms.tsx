@@ -22,6 +22,15 @@ export const RenderPromptAtom = atomWithStorage<string>(
 const starterBlocks = [
   {
     id: uuid(),
+    type: "render",
+    src: "/cat.jpg",
+    x: -400,
+    y: -300,
+    width: 800,
+    height: 600,
+  },
+  {
+    id: uuid(),
     type: "image",
     src: "/cat.jpg",
     x: -400,
@@ -46,10 +55,12 @@ const starterBlocks = [
     y: 100,
     width: 400,
     height: 300,
-  }
+  },
 ];
 
-export const BlockIdsAtom = atom<string[]>(starterBlocks.map((block) => block.id));
+export const BlockIdsAtom = atom<string[]>(
+  starterBlocks.map((block) => block.id),
+);
 let starterBlockMap: Record<string, BlockType> = {};
 for (const block of starterBlocks) {
   starterBlockMap[block.id] = block as BlockType;
@@ -88,4 +99,3 @@ export const StateRefAtom = atom<StateRefType>({
   selectedBlockIds: [],
   blockSelector: null,
 });
-

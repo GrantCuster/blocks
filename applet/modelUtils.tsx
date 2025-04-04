@@ -1,30 +1,25 @@
-import {
-  GoogleGenerativeAI,
-  GenerateContentRequest,
-} from "@google/generative-ai";
+import { ContentListUnion, GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({ apiKey: localStorage.getItem('API_KEY') || process.env.API_KEY });
 
 export const predict = async ({
   contents,
 }: {
-  contents: GenerateContentRequest;
+  contents: ContentListUnion
 }) => {
-  const genAI = new GoogleGenerativeAI(
-    "PUT KEY HERE"
-  );
-
+  console.log(contents);
   try {
-    const result = await genAI
-      .getGenerativeModel({
-        model: "gemini-2.0-flash-exp",
-        generationConfig: {
-          temperature: 0.6,
-          responseModalities: ["Text", "Image"],
-        },
-      })
-      .generateContent(contents);
-    const response = result.response;
+   const result = await ai.models.generateContent({
+      model: "gemini-2.0-flash-exp",
+      contents: contents,
+      config: {
+        temperature: 0.6,
+        responseModalities: ["TEXT", "IMAGE"],
+      },
+    });
+    console.log(result.text);
 
-    return response.candidates![0].content.parts;
+    return [];
   } catch (error) {
     console.error("Error generating response:", error);
     throw error;

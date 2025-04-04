@@ -203,6 +203,8 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
     const responseParts = await predict({
       contents,
     });
+    console.log(responseParts)
+    return
 
     let lastImagePart = null;
 
