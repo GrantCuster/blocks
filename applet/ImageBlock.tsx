@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ImageBlockType } from "./types";
 
 export function ImageBlock({ block }: { block: ImageBlockType }) {
@@ -6,10 +6,17 @@ export function ImageBlock({ block }: { block: ImageBlockType }) {
 
   useEffect(() => {
     async function main() {
-      const fetched = await fetch(block.src);
-      const blob = await fetched.blob();
-      const url = URL.createObjectURL(blob);
-      setImageUrl(url);
+      if (window.location.origin.includes("usercontent.goog")) {
+        const noStartingSlash = block.src.startsWith("/")
+          ? block.src.slice(1)
+          : block.src;
+        const fetched = await fetch(noStartingSlash);
+        const blob = await fetched.blob();
+        const url = URL.createObjectURL(blob);
+        setImageUrl(url);
+      } else {
+        setImageUrl(block.src);
+      }
     }
     main();
   }, [block.src]);
@@ -17,7 +24,7 @@ export function ImageBlock({ block }: { block: ImageBlockType }) {
   return (
     <img
       draggable={false}
-      src={imageUrl || ''}
+      src={imageUrl || ""}
       style={{ width: "100%", height: "100%" }}
     />
   );
