@@ -58,7 +58,7 @@ export function useDragAndSelect() {
       stateRef.camera,
       stateRef.zoomContainer!,
     );
-    const currentBlocks = stateRef.blockIds.map((id) => stateRef.blockMap[id]);
+    const currentBlocks = stateRef.blockIds.map((id) => stateRef.blockMap[id]).filter(block => block.type !== "render");
     if (first) {
       initialPointRef.current = { x: canvasPoint.x, y: canvasPoint.y };
     }
