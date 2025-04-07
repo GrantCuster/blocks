@@ -1,9 +1,5 @@
 import { useAtom } from "jotai";
-import {
-  BlockIdsAtom,
-  BlockMapAtom,
-  SelectedBlockIdsAtom,
-} from "./atoms";
+import { BlockIdsAtom, BlockMapAtom, SelectedBlockIdsAtom } from "./atoms";
 import { RenderBlockType, ImageBlockType, PromptBlockType } from "./types";
 import { PromptBlock } from "./PromptBlock";
 import { RenderBlock } from "./RenderBlock";
@@ -62,7 +58,7 @@ export function BlockWrapper({ id }: { id: string }) {
       }}
     >
       <BlockFactory id={id} />
-      <BlockResizers id={id} />
+      {block.type !== "render" ? <BlockResizers id={id} /> : null}
     </div>
   );
 }

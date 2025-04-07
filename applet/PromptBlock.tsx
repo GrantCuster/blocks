@@ -66,13 +66,13 @@ export function PromptBlock({ block }: { block: PromptBlockType }) {
             />
           ) : (
             <div
-              className="absolute left-0 top-0 w-full px-3 py-2 whitespace-pre-wrap break-words h-full select-none"
+              className={`absolute left-0 top-0 w-full px-3 py-2 whitespace-pre-wrap break-words h-full select-none ${block.text.length > 0 ? "opacity-100" : "opacity-50"}`}
               onDoubleClick={() => {
                 doubleClickedRef.current = true;
                 setBlock({ editing: true });
               }}
             >
-              <div className="">{block.text}</div>
+              <div className="">{block.text.length > 0 ? block.text : "Your prompt"}</div>
             </div>
           )}
         </div>

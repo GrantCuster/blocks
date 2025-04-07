@@ -2,9 +2,11 @@ import { useAtom } from "jotai";
 import { useRef, useEffect } from "react";
 import { ModeAtom } from "./atoms";
 import { ModeType } from "./types";
+import { useHandleUploadImage } from "./hooks";
 
 export function Toolbar() {
   const [mode, setMode] = useAtom(ModeAtom);
+  const handleImageUpload = useHandleUploadImage();
 
   const lastModeRef = useRef<ModeType>(mode);
   useEffect(() => {
@@ -30,7 +32,7 @@ export function Toolbar() {
   return (
     <>
       <div className="absolute left-0 top-0 pointer-events-none">
-        <div className="px-3 py-3">Blocks Lite</div>
+        <div className="px-3 py-3">Blocks</div>
       </div>
       <div className="flex gap-2 absolute bottom-4 left-1/2 -translate-x-1/2">
         <button
@@ -66,6 +68,15 @@ export function Toolbar() {
         >
           Segment
         </button>
+        <label className={`block bg-neutral-700 px-3 py-1 rounded-lg`}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+          Image
+        </label>
       </div>
     </>
   );

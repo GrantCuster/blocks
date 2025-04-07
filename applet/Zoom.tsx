@@ -27,11 +27,7 @@ export function Zoom() {
             zoomCamera(camera, { x, y }, deltaY / 400, zoomContainer),
           );
         } else {
-          if (event.shiftKey) {
-            setCamera((camera) => panCamera(camera, deltaY, 0));
-          } else {
-            setCamera((camera) => panCamera(camera, deltaX, deltaY));
-          }
+          setCamera((camera) => panCamera(camera, deltaX, deltaY));
         }
       }
     }
@@ -77,8 +73,8 @@ export function Zoom() {
 function BlockSelector() {
   const [blockSelector] = useAtom(BlockSelectorAtom);
 
-  return (
-    blockSelector ? <div
+  return blockSelector ? (
+    <div
       className="absolute pointer-events-none border-[2px] border-blue-500"
       style={{
         left: blockSelector.x,
@@ -86,6 +82,6 @@ function BlockSelector() {
         width: blockSelector.width,
         height: blockSelector.height,
       }}
-    /> : null
-  );
+    />
+  ) : null;
 }

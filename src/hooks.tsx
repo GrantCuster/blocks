@@ -134,3 +134,44 @@ export function useHandlePasteImage() {
     };
   }, []);
 }
+
+export function useHandleUploadImage() {
+  const createBlock = useCreateBlock();
+  const [camera] = useAtom(CameraAtom);
+  const [zoomContainer] = useAtom(ZoomContainerAtom);
+
+  const cameraRef = useRef(camera);
+  cameraRef.current = camera;
+  const zoomContainerRef = useRef<HTMLDivElement | null>(null);
+  zoomContainerRef.current = zoomContainer;
+
+  function handleUploadImage(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const src = reader.result as string;
+        const image = await loadImage(src);
+        const scale = Math.min(maxSize / image.width, maxSize / image.height);
+        const canvasPoint = screenToCanvas(
+          { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+          cameraRef.current,
+          zoomContainerRef.current!,
+        );
+        createBlock({
+          id: uuid(),
+          type: "image",
+          src,
+          x: canvasPoint.x - (image.width * scale) / 2,
+          y: canvasPoint.y - (image.height * scale) / 2,
+          width: image.width * scale,
+          height: image.height * scale,
+          zIndex: makeZIndex(),
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  return handleUploadImage;
+}
