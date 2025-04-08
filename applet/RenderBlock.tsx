@@ -6,7 +6,6 @@ import { useCreateBlock, useUpdateBlock } from "./hooks";
 import { predict } from "./modelUtils";
 import { RenderBlockType } from "./types";
 import { appletResolveImage, loadImage, makeZIndex } from "./utils";
-import { GenerateContentRequest } from "@google/generative-ai";
 import { Part } from "@google/genai";
 
 const sides = ["top", "right", "bottom", "left"] as const;
@@ -65,80 +64,24 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       );
     }
 
-    let image = canvas.toDataURL();
-    let croppedImage = null;
-    let blurredCanvas = null;
-    let blurredImage = null;
-    if (imageActive) {
-      croppedImage = document.createElement("canvas");
-      croppedImage.width = maxX - minX;
-      croppedImage.height = maxY - minY;
-      const croppedCtx = croppedImage.getContext("2d")!;
-      croppedCtx.drawImage(
-        canvas,
-        minX,
-        minY,
-        maxX - minX,
-        maxY - minY,
-        0,
-        0,
-        maxX - minX,
-        maxY - minY,
-      );
-      image = croppedImage.toDataURL();
-
-      blurredCanvas = document.createElement("canvas");
-      blurredCanvas.width = croppedImage.width;
-      blurredCanvas.height = croppedImage.height;
-      const blurredCtx = blurredCanvas.getContext("2d")!;
-      blurredCtx.filter = "blur(16px)";
-      blurredCtx.drawImage(croppedImage, 0, 0);
-      blurredImage = blurredCanvas.toDataURL();
-    }
-
     // update to use for labels
-    // function textWrap(text: string, maxWidth: number) {
-    //   const words = text.split(" ");
-    //   const lines: string[] = [];
-    //   let line = "";
-    //   for (const word of words) {
-    //     const testLine = line + word + " ";
-    //     const testWidth = ctx.measureText(testLine).width;
-    //     if (testWidth > maxWidth) {
-    //       lines.push(line);
-    //       line = word + " ";
-    //     } else {
-    //       line = testLine;
-    //     }
-    //   }
-    //   lines.push(line);
-    //   return lines;
-    // }
-    // const promptBlocks = blockIds
-    //   .map((id) => blockMap[id])
-    //   .filter((block) => block.type === "prompt");
-    // for (const promptBlock of promptBlocks) {
-    //   if (
-    //     promptBlock.x + promptBlock.width < block.x ||
-    //     promptBlock.x > block.x + block.width
-    //   )
-    //     continue;
-    //   if (
-    //     promptBlock.y + promptBlock.height < block.y ||
-    //     promptBlock.y > block.y + block.height
-    //   )
-    //     continue;
-    //   ctx.font = "16px sans-serif";
-    //   ctx.fillStyle = "white";
-    //   const lines = textWrap(promptBlock.text, promptBlock.width);
-    //   for (let i = 0; i < lines.length; i++) {
-    //     ctx.fillText(
-    //       lines[i],
-    //       promptBlock.x - block.x,
-    //       promptBlock.y - block.y + 16 * (i + 1),
-    //     );
-    //   }
-    // }
+    function textWrap(text: string, maxWidth: number) {
+      const words = text.split(" ");
+      const lines: string[] = [];
+      let line = "";
+      for (const word of words) {
+        const testLine = line + word + " ";
+        const testWidth = ctx.measureText(testLine).width;
+        if (testWidth > maxWidth) {
+          lines.push(line);
+          line = word + " ";
+        } else {
+          line = testLine;
+        }
+      }
+      lines.push(line);
+      return lines;
+    }
 
     let activePrompts = [];
     const promptBlocks = blockIds
@@ -158,6 +101,59 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       activePrompts.push(promptBlock.text);
     }
 
+    let image = canvas.toDataURL();
+    let croppedImage = null;
+    let blurredCanvas = document.createElement("canvas");
+    let blurredImage = null;
+
+    blurredCanvas.width = block.width;
+    blurredCanvas.height = block.height;
+    const blurredCtx = blurredCanvas.getContext("2d")!;
+    blurredCtx.fillStyle = "black";
+    blurredCtx.fillRect(0, 0, block.width, block.height);
+
+    if (imageActive) {
+      croppedImage = document.createElement("canvas");
+      croppedImage.width = block.width;
+      croppedImage.height = block.height;
+      croppedImage.width = maxX - minX;
+      croppedImage.height = maxY - minY;
+      const croppedCtx = croppedImage.getContext("2d")!;
+      croppedCtx.drawImage(
+        canvas,
+        minX,
+        minY,
+        maxX - minX,
+        maxY - minY,
+        0,
+        0,
+        maxX - minX,
+        maxY - minY,
+      );
+      image = croppedImage.toDataURL();
+    }
+
+    if (croppedImage) {
+      blurredCanvas.width = croppedImage.width;
+      blurredCanvas.height = croppedImage.height;
+      blurredCtx.filter = "blur(16px)";
+      blurredCtx.drawImage(croppedImage, 0, 0);
+    }
+
+    blurredCtx.filter = "none";
+    let yTrack = 8;
+    const padding = 16;
+    for (const activePrompt of activePrompts) {
+      blurredCtx.font = "16px sans-serif";
+      blurredCtx.fillStyle = "white";
+      const lines = textWrap(activePrompt, blurredCanvas.width - padding * 2);
+      for (let i = 0; i < lines.length; i++) {
+        blurredCtx.fillText(lines[i], padding, yTrack + 16 * (i + 1));
+        yTrack += 16;
+      }
+    }
+    blurredImage = blurredCanvas.toDataURL();
+
     const id = uuid();
 
     // visualize debug
@@ -166,7 +162,9 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       type: "image",
       src: blurredImage || image,
       x: block.x + (croppedImage ? (block.width - croppedImage!.width) / 2 : 0),
-      y: block.y + (croppedImage ? (block.height - croppedImage!.height) / 2 : 0),
+      y:
+        block.y +
+        (croppedImage ? (block.height - croppedImage!.height) / 2 : 0),
       width: croppedImage ? croppedImage.width : block.width,
       height: croppedImage ? croppedImage.height : block.height,
       zIndex: makeZIndex(),
@@ -258,7 +256,7 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       }}
     >
       <button
-        className="absolute pointer-events-auto -bottom-9 right-0 px-3 py-1 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white"
+        className="absolute pointer-events-auto -bottom-9 -right-1 px-3 py-1 text-sm rounded-lg bg-red-500 hover:bg-red-600 text-white"
         onClick={handleRender}
       >
         Render
@@ -266,7 +264,7 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       {sides.map((side) => (
         <div
           key={side}
-          className="absolute cursor-move pointer-events-auto"
+          className="absolute pointer-events-auto"
           style={{
             [side]: -8,
             width: side === "top" || side === "bottom" ? "100%" : 16,

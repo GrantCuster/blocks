@@ -52,13 +52,15 @@ export function useDragAndSelect() {
   const initialPositionsRef = useRef<PointType[]>([]);
   const initialPointRef = useRef({ x: 0, y: 0 });
 
-  return useDrag(async ({ first, last, xy: [x, y] }) => {
+  return useDrag(async ({ first, last, xy: [x, y], altKey }) => {
     const canvasPoint = screenToCanvas(
       { x, y },
       stateRef.camera,
       stateRef.zoomContainer!,
     );
-    const currentBlocks = stateRef.blockIds.map((id) => stateRef.blockMap[id]).filter(block => block.type !== "render");
+    const currentBlocks = stateRef.blockIds
+      .map((id) => stateRef.blockMap[id])
+      .filter((block) => block.type !== "render");
     if (first) {
       initialPointRef.current = { x: canvasPoint.x, y: canvasPoint.y };
     }
@@ -99,6 +101,37 @@ export function useDragAndSelect() {
           } else {
             stateRef.selectedBlockIds = [];
             setSelectedBlockIds([]);
+          }
+
+          if (altKey) {
+            // duplicate selected blocks
+            const selectedBlocks = stateRef.selectedBlockIds.map(
+              (id) => stateRef.blockMap[id],
+            );
+            let newBlockObj: Record<string, BlockType> = {};
+            for (let i = 0; i < selectedBlocks.length; i++) {
+              const block = selectedBlocks[i];
+              const newId = uuid();
+              newBlockObj[newId] = {
+                ...block,
+                id: newId,
+                x: block.x + 10,
+                y: block.y + 10,
+                zIndex: makeZIndex() + 1,
+              } as BlockType;
+            }
+            stateRef.blockMap = { ...stateRef.blockMap, ...newBlockObj };
+            setBlockMap((prev) => {
+              return { ...prev, ...newBlockObj };
+            });
+            stateRef.blockIds = [
+              ...stateRef.blockIds,
+              ...Object.keys(newBlockObj),
+            ];
+            setBlockIds((prev) => {
+              return [...prev, ...Object.keys(newBlockObj)];
+            });
+            stateRef.selectedBlockIds = Object.keys(newBlockObj);
           }
         }
 
@@ -296,6 +329,103 @@ export function useDragAndSelect() {
         }
         break;
       }
+      case "frame": {
+        if (first) {
+          const currentRenderBlocks = stateRef.blockIds
+            .map((id) => stateRef.blockMap[id])
+            .filter((block) => block.type === "render");
+
+          const intersected = pointIntersectBlocks(
+            canvasPoint,
+            currentRenderBlocks,
+          );
+
+          if (intersected.length > 0) {
+            let renderBlocks = intersected.filter(
+              (block) => block.type === "render",
+            );
+            const topBlock = renderBlocks[0].id;
+
+            if (stateRef.selectedBlockIds.includes(topBlock)) {
+              // keep selection
+            } else {
+              stateRef.selectedBlockIds = [topBlock];
+              setSelectedBlockIds([topBlock]);
+            }
+            initialPositionsRef.current = stateRef.selectedBlockIds.map(
+              (id) => {
+                const block = stateRef.blockMap[id];
+                return {
+                  x: block.x,
+                  y: block.y,
+                };
+              },
+            );
+          } else {
+            stateRef.selectedBlockIds = [];
+            setSelectedBlockIds([]);
+          }
+
+          if (altKey) {
+            // duplicate selected blocks
+            const selectedBlocks = stateRef.selectedBlockIds.map(
+              (id) => stateRef.blockMap[id],
+            );
+            let newBlockObj: Record<string, BlockType> = {};
+            for (let i = 0; i < selectedBlocks.length; i++) {
+              const block = selectedBlocks[i];
+              const newId = uuid();
+              newBlockObj[newId] = {
+                ...block,
+                id: newId,
+                x: block.x + 10,
+                y: block.y + 10,
+                zIndex: makeZIndex() + 1,
+              } as BlockType;
+            }
+            stateRef.blockMap = { ...stateRef.blockMap, ...newBlockObj };
+            setBlockMap((prev) => {
+              return { ...prev, ...newBlockObj };
+            });
+            stateRef.blockIds = [
+              ...stateRef.blockIds,
+              ...Object.keys(newBlockObj),
+            ];
+            setBlockIds((prev) => {
+              return [...prev, ...Object.keys(newBlockObj)];
+            });
+            stateRef.selectedBlockIds = Object.keys(newBlockObj);
+          }
+        }
+
+        if (stateRef.selectedBlockIds.length === 0) {
+          // fall through to frame creation
+        } else {
+          // moveBlocks
+          const selectedBlocks = stateRef.selectedBlockIds.map(
+            (id) => stateRef.blockMap[id],
+          );
+          let newBlockObj: Record<string, BlockType> = {};
+          for (let i = 0; i < selectedBlocks.length; i++) {
+            const block = selectedBlocks[i];
+            newBlockObj[block.id] = {
+              ...block,
+              x:
+                initialPositionsRef.current[i].x +
+                (canvasPoint.x - initialPointRef.current.x),
+              y:
+                initialPositionsRef.current[i].y +
+                (canvasPoint.y - initialPointRef.current.y),
+              zIndex: makeZIndex() + 1,
+            } as BlockType;
+          }
+          setBlockMap((prev) => {
+            return { ...prev, ...newBlockObj };
+          });
+        }
+        break;
+      }
+
       default: {
         break;
       }

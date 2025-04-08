@@ -9,7 +9,7 @@ export type CameraType = {
   z: number;
 };
 
-export type ModeType = "move" | "segment" | "render" | "prompt";
+export type ModeType = "move" | "segment" | "frame" | "prompt";
 
 export type BaseBlockType = {
   id: string;

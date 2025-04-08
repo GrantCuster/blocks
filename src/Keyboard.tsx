@@ -22,12 +22,21 @@ export function Keyboard() {
     }
   }
 
+  function handleDuplicateBlocks() {
+    // TODO: fill in
+  }
+
   useEffect(() => {
     // keyboard shortcuts
     function handleKeyDown(event: KeyboardEvent) {
+      // TODO: update to work
+      const isCmdOrCtrl = event.altKey;
       if (event.key === "Backspace") {
         event.preventDefault();
         handleDeleteSelectedBlocks();
+      }
+      if (isCmdOrCtrl && event.key === "d") {
+        handleDuplicateBlocks();
       }
     }
     window.addEventListener("keydown", handleKeyDown);

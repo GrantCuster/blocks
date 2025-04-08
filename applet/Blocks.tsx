@@ -1,5 +1,10 @@
 import { useAtom } from "jotai";
-import { BlockIdsAtom, BlockMapAtom, SelectedBlockIdsAtom } from "./atoms";
+import {
+  BlockIdsAtom,
+  BlockMapAtom,
+  ModeAtom,
+  SelectedBlockIdsAtom,
+} from "./atoms";
 import { RenderBlockType, ImageBlockType, PromptBlockType } from "./types";
 import { PromptBlock } from "./PromptBlock";
 import { RenderBlock } from "./RenderBlock";
@@ -41,9 +46,16 @@ export function Blocks() {
 
 export function BlockWrapper({ id }: { id: string }) {
   const [blockMap] = useAtom(BlockMapAtom);
+  const [mode] = useAtom(ModeAtom);
   const block = blockMap[id];
   const [selectedBlockIds] = useAtom(SelectedBlockIdsAtom);
   const isSelected = selectedBlockIds.includes(id);
+
+  const isRenderBlock = block.type === "render";
+  const isFrameMode = mode === "frame";
+  const isRenderBlockInFrameMode = isRenderBlock && isFrameMode;
+
+  const isNotRenderBlock = block.type !== "render";
 
   return (
     <div
@@ -58,7 +70,8 @@ export function BlockWrapper({ id }: { id: string }) {
       }}
     >
       <BlockFactory id={id} />
-      {block.type !== "render" ? <BlockResizers id={id} /> : null}
+      {isNotRenderBlock ? <BlockResizers id={id} /> : null}
+      {isRenderBlockInFrameMode ? <BlockResizers id={id} /> : null}
     </div>
   );
 }

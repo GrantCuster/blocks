@@ -35,7 +35,7 @@ export function RenderCreator() {
   blocksRef.current = blocks;
 
   useEffect(() => {
-    if (mode !== "render") return;
+    if (mode !== "frame") return;
     function handlePointerDown(e: PointerEvent) {
       (e.target as Element).setPointerCapture(e.pointerId);
       const point = screenToCanvas(
@@ -84,9 +84,14 @@ export function RenderCreator() {
       );
       const x = Math.min(canvasPoint.x, pointRef.current.x);
       const y = Math.min(canvasPoint.y, pointRef.current.y);
-      const width = Math.max(Math.abs(canvasPoint.x - pointRef.current.x), 96);
-      const height = Math.max(Math.abs(canvasPoint.y - pointRef.current.y), 48);
+      const width = Math.abs(canvasPoint.x - pointRef.current.x)
+      const height = Math.abs(canvasPoint.y - pointRef.current.y)
+
       pointRef.current = null;
+      if (width < 8 || height < 8) {
+        setRenderCreator(null);
+        return;
+      }
 
       createBlock({
         id: uuid(),
@@ -99,7 +104,7 @@ export function RenderCreator() {
         zIndex: makeZIndex(),
       });
       setRenderCreator(null);
-      setMode("move");
+      // setMode("move");
     }
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("pointermove", handlePointerMove);
@@ -113,7 +118,7 @@ export function RenderCreator() {
 
   return renderCreator ? (
     <div
-      className="border-2 border-blue-500"
+      className="border-2 border-orange-500"
       style={{
         position: "absolute",
         left: renderCreator.x,

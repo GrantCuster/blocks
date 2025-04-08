@@ -23,11 +23,10 @@ const starterBlocks = [
   {
     id: uuid(),
     type: "render",
-    src: "/cat.jpg",
-    x: -400,
-    y: -300,
-    width: 800,
-    height: 600,
+    x: -300,
+    y: -200,
+    width: 600,
+    height: 400,
   },
   {
     id: uuid(),
@@ -99,3 +98,5 @@ export const StateRefAtom = atom<StateRefType>({
   selectedBlockIds: [],
   blockSelector: null,
 });
+
+export const ShowTipsAtom = atom(true);
