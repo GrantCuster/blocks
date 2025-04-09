@@ -101,4 +101,4 @@ export const StateRefAtom = atom<StateRefType>({
 
 export const ShowTipsAtom = atom(true);
 
-export const ShowSettingsAtom = atom(true)
+export const ShowSettingsAtom = atom(false)
