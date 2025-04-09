@@ -62,7 +62,7 @@ export function PromptCreator() {
       const x = Math.min(canvasPoint.x, pointRef.current.x);
       const y = Math.min(canvasPoint.y, pointRef.current.y);
       const width = Math.max(Math.abs(canvasPoint.x - pointRef.current.x), 180)
-      const height = Math.max(Math.abs(canvasPoint.y - pointRef.current.y), 24)
+      const height = Math.max(Math.abs(canvasPoint.y - pointRef.current.y), 32)
       pointRef.current = null;
 
       createBlock({
