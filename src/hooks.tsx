@@ -9,7 +9,7 @@ import { BlockType } from "./types";
 import { useEffect, useRef } from "react";
 import { v4 as uuid } from "uuid";
 import { screenToCanvas } from "./Camera";
-import { loadImage, makeZIndex } from "./utils";
+import { appletResolveImage, loadImage, makeZIndex } from "./utils";
 import { maxSize } from "./consts";
 
 export function useCreateBlock() {
@@ -174,4 +174,31 @@ export function useHandleUploadImage() {
   }
 
   return handleUploadImage;
+}
+
+export function useSerializeBlocks() {
+  const [blockIds] = useAtom(BlockIdsAtom);
+  const [blockMap] = useAtom(BlockMapAtom);
+
+  return function () {
+    const blocks = blockIds.map((id) => blockMap[id]);
+
+    const adjusted = blocks.map(async (block) => {
+      if (block.type === "image") {
+        const imageUrl = await appletResolveImage(block.src);
+        return {
+          ...block,
+          src: imageUrl,
+        };
+      } else {
+        return block;
+      }
+    });
+
+    Promise.all(adjusted).then((adjusted) => {
+      // copy to clipboard
+      const text = JSON.stringify(adjusted);
+      window.serialized = text;
+   });
+  };
 }

@@ -3,6 +3,7 @@ import { atomWithStorage } from "jotai/utils";
 import { BlockType, ModeType, StateRefType } from "./types";
 import { defaultRenderPrompt } from "./consts";
 import { v4 as uuid } from "uuid";
+import { starterBlocks } from "./starterBlocks";
 
 export const CameraAtom = atom({
   x: 0,
@@ -18,44 +19,6 @@ export const RenderPromptAtom = atomWithStorage<string>(
   "render-prompt-3",
   defaultRenderPrompt,
 );
-
-const starterBlocks = [
-  {
-    id: uuid(),
-    type: "render",
-    x: -300,
-    y: -200,
-    width: 600,
-    height: 400,
-  },
-  {
-    id: uuid(),
-    type: "image",
-    src: "/cat.jpg",
-    x: -400,
-    y: -400,
-    width: 400,
-    height: 300,
-  },
-  {
-    id: uuid(),
-    type: "image",
-    src: "/pumpkins.jpg",
-    x: 200,
-    y: -400,
-    width: 400,
-    height: 300,
-  },
-  {
-    id: uuid(),
-    type: "image",
-    src: "/clock.jpg",
-    x: -200,
-    y: 100,
-    width: 400,
-    height: 300,
-  },
-];
 
 export const BlockIdsAtom = atom<string[]>(
   starterBlocks.map((block) => block.id),
@@ -101,4 +64,4 @@ export const StateRefAtom = atom<StateRefType>({
 
 export const ShowTipsAtom = atom(true);
 
-export const ShowSettingsAtom = atom(false)
+export const ShowSettingsAtom = atom(false);

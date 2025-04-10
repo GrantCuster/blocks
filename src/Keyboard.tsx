@@ -57,7 +57,13 @@ export function Keyboard() {
     function handleKeyDown(event: KeyboardEvent) {
       const isCmdOrCtrl = isMac ? event.metaKey : event.ctrlKey;
       if (event.key === "Backspace") {
-        event.preventDefault();
+        if (
+          document.activeElement &&
+          (document.activeElement.tagName === "INPUT" ||
+            document.activeElement.tagName === "TEXTAREA")
+        ) {
+          return;
+        }
         handleDeleteSelectedBlocks();
       }
       if (isCmdOrCtrl && event.key === "d") {

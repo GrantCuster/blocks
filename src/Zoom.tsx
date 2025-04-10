@@ -2,7 +2,7 @@ import { useAtom } from "jotai";
 import { useEffect } from "react";
 import { BlockSelectorAtom, CameraAtom, ZoomContainerAtom } from "./atoms";
 import { Blocks } from "./Blocks";
-import { useHandleDropImage, useHandlePasteImage } from "./hooks";
+import { useHandleDropImage, useHandlePasteImage, useSerializeBlocks } from "./hooks";
 import { RenderCreator } from "./RenderCreator";
 import { PromptCreator } from "./PromptCreator";
 import { panCamera, zoomCamera } from "./Camera";
@@ -14,6 +14,13 @@ export function Zoom() {
   useHandleDropImage();
   useHandlePasteImage();
   const useDragBind = useDragAndSelect();
+  const serializeBlocks = useSerializeBlocks();
+
+  useEffect(() => {
+    window.serializeBlocks = () => {
+      serializeBlocks();
+    }
+  }, [serializeBlocks]);
 
   useEffect(() => {
     function handleWheel(event: WheelEvent) {

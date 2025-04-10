@@ -141,11 +141,12 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
     }
 
     blurredCtx.filter = "none";
-    let yTrack = 8;
+    blurredCtx.font = "16px sans-serif";
+    blurredCtx.fillStyle = "orange";
     const padding = 16;
+    blurredCtx.fillText("Rendering...", padding, 8 + 16);
+    let yTrack = 8 + 16;
     for (const activePrompt of activePrompts) {
-      blurredCtx.font = "16px sans-serif";
-      blurredCtx.fillStyle = "white";
       const lines = textWrap(activePrompt, blurredCanvas.width - padding * 2);
       for (let i = 0; i < lines.length; i++) {
         blurredCtx.fillText(lines[i], padding, yTrack + 16 * (i + 1));
@@ -161,10 +162,12 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
       id,
       type: "image",
       src: blurredImage || image,
-      x: block.x + (croppedImage ? (block.width - croppedImage!.width) / 2 : 0),
-      y:
-        block.y +
-        (croppedImage ? (block.height - croppedImage!.height) / 2 : 0),
+      // x: block.x + (croppedImage ? (block.width - croppedImage!.width) / 2 : 0),
+      // y:
+      //   block.y +
+      //   (croppedImage ? (block.height - croppedImage!.height) / 2 : 0),
+      x: block.x + block.width + 16,
+      y: block.y,
       width: croppedImage ? croppedImage.width : block.width,
       height: croppedImage ? croppedImage.height : block.height,
       zIndex: makeZIndex(),
