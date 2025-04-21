@@ -7,7 +7,8 @@ rm -rf applet
 mkdir applet
 
 cp -r src/* applet/
-cp -r public/* applet/
+# do not need right now
+# cp -r public/* applet/
 
 # remove line 'import './index.css';'
 # add line import '@tailwindcss/browser';
