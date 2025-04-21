@@ -44,7 +44,7 @@ export function blockIntersectBlocks(
 export async function appletResolveImage(src: string) {
   if (window.location.origin.includes("usercontent.goog")) {
     // const noStartingSlash = src.startsWith("/") ? src.slice(1) : src;
-    const ghPagesSource = "https://grantcuster.github.io/block-applet-test" + src;
+    const ghPagesSource = "https://grantcuster.github.io/block-applet-test/" + src;
     const fetched = await fetch(ghPagesSource);
     const blob = await fetched.blob();
     const url = URL.createObjectURL(blob);
