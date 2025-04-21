@@ -1,6 +1,6 @@
 import { ContentListUnion, GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: localStorage.getItem('API_KEY') || process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: localStorage.getItem('GEMINI_API_KEY') || process.env.API_KEY });
 
 export const predict = async ({
   contents,
