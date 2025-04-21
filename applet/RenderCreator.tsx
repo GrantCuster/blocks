@@ -104,7 +104,7 @@ export function RenderCreator() {
         zIndex: makeZIndex(),
       });
       setRenderCreator(null);
-      // setMode("move");
+      setMode("move");
     }
     window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("pointermove", handlePointerMove);

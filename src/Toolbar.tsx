@@ -1,6 +1,8 @@
 import { useAtom } from "jotai";
 import { useRef, useEffect } from "react";
 import {
+  BlockIdsAtom,
+  BlockMapAtom,
   ModeAtom,
   RenderPromptAtom,
   ShowSettingsAtom,
@@ -14,6 +16,8 @@ export function Toolbar() {
   const [mode, setMode] = useAtom(ModeAtom);
   const [showTips, setShowTips] = useAtom(ShowTipsAtom);
   const [showSettings, setShowSettings] = useAtom(ShowSettingsAtom);
+  const [, setBlockIds] = useAtom(BlockIdsAtom);
+  const [, setBlockMap] = useAtom(BlockMapAtom);
   const handleImageUpload = useHandleUploadImage();
 
   const lastModeRef = useRef<ModeType>(mode);
@@ -43,12 +47,33 @@ export function Toolbar() {
         <div className="px-3 py-3">
           <div>Blocks</div>
           <div className="text-neutral-400 text-sm">
-            powered by Gemini Image Generation
+            powered by<br />
+            <a
+              className="underline pointer-events-auto"
+              href="https://developers.googleblog.com/en/experiment-with-gemini-20-flash-native-image-generation/"
+              target="_blank"
+            >
+              Gemini Native Image Generation
+            </a>
           </div>
         </div>
       </div>
       <div className="absolute right-0 top-0 pointer-events-none">
         <div className="px-3 text-sm py-3 flex gap-2">
+          <button
+            className="py-1 px-2 bg-neutral-700 rounded-md pointer-events-auto"
+            onClick={() => {
+              const confirm = window.confirm(
+                "Are you sure you want to clear all blocks?",
+              );
+              if (confirm) {
+                setBlockIds([]);
+                setBlockMap({});
+              }
+            }}
+          >
+            Clear all
+          </button>
           <button
             className="py-1 px-2 bg-neutral-700 rounded-md pointer-events-auto"
             onClick={() => {

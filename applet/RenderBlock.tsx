@@ -1,6 +1,6 @@
 import { useAtom } from "jotai";
 import { v4 as uuid } from "uuid";
-import { BlockIdsAtom, BlockMapAtom, RenderPromptAtom } from "./atoms";
+import { BlockIdsAtom, BlockMapAtom, ModeAtom, RenderPromptAtom, StateRefAtom } from "./atoms";
 import { maxSize } from "./consts";
 import { useCreateBlock, useUpdateBlock } from "./hooks";
 import { predict } from "./modelUtils";
@@ -16,8 +16,14 @@ export function RenderBlock({ block }: { block: RenderBlockType }) {
   const createBlock = useCreateBlock();
   const updateBlock = useUpdateBlock();
   const [systemInstruction] = useAtom(RenderPromptAtom);
+  const [stateRef] = useAtom(StateRefAtom);
+  const [, setMode] = useAtom(ModeAtom);
 
   async function handleRender() {
+    if (stateRef.mode === "frame") {
+      setMode("move");
+    }
+
     const canvas = document.createElement("canvas");
     canvas.width = block.width;
     canvas.height = block.height;
