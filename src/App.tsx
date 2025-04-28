@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDevices } from "./useDevices";
 import { mediaStreamAtom } from "./atoms";
 import { useAtom } from "jotai";
+import { PersonGeneration } from "@google/genai";
 
 const baseUrl = "https://generativelanguage.googleapis.com/v1beta";
 
@@ -11,20 +12,13 @@ export function App() {
   const { devices, selectedDeviceIndex, setSelectedDeviceIndex } = useDevices();
   const [file, setFile] = useState<File | null>(null);
   const [stream] = useAtom(mediaStreamAtom);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   async function generateVideo(value: string): Promise<string> {
-    let imageBytes = null;
-    let mimeType = null;
-    if (file) {
-      const reader = new FileReader();
-      reader.readAsArrayBuffer(file);
-      imageBytes = await new Promise((resolve) => {
-        reader.onload = () => resolve(reader.result);
-      });
-      mimeType = file.type;
-    }
+    // get image bytes from preview canvas
+    const previewCanvas = filePreviewCanvasRef.current;
 
     const modelName = "veo-2.0-generate-001";
     let body = {
@@ -36,13 +30,17 @@ export function App() {
       parameters: {
         sampleCount: 1,
         durationSeconds: 6,
+        personGeneration: PersonGeneration.ALLOW_ADULT
       },
     };
 
-    if (imageBytes) {
+    if (previewCanvas) {
+      const dataUrl = previewCanvas.toDataURL("image/jpeg");
+      const base64 = dataUrl.split(",")[1];
+      const mimeType = dataUrl.split(";")[0].split(":")[1];
       // @ts-ignore
       body.instances[0].image = {
-        imageBytes: imageBytes,
+        bytesBase64Encoded: base64,
         mimeType: mimeType,
       };
     }
@@ -163,10 +161,7 @@ export function App() {
 
   const filePreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   useEffect(() => {
-    console.log("file", file);
-    console.log("filePreviewCanvasRef", filePreviewCanvasRef.current);
     if (file && filePreviewCanvasRef.current) {
-      console.log("yep");
       const canvas = filePreviewCanvasRef.current;
       const ctx = canvas.getContext("2d");
       const img = new Image();
@@ -204,6 +199,8 @@ export function App() {
     }
   }, [file]);
 
+  console.log(videoUrl);
+
   return (
     <div className="w-full relative h-[100dvh]">
       <video
@@ -238,6 +235,7 @@ export function App() {
             setStatus("Generating video...");
             generateVideo(prompt)
               .then((videoUrl) => {
+                setVideoUrl(videoUrl);
                 setStatus(`Video generated: ${videoUrl}`);
               })
               .catch((error) => {
@@ -247,6 +245,21 @@ export function App() {
         }}
       />
       <div>{status}</div>
+
+      {videoUrl && (
+        <div className="mt-4">
+          <video
+            controls
+            autoPlay
+            playsInline
+            muted
+            loop
+            width={960}
+            height={540}
+            src={`data:video/mp4;base64,${videoUrl}`}
+          />
+        </div>
+      )}
 
       <div className="mt-8">Webcam test</div>
       <div className="grow">
