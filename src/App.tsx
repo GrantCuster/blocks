@@ -9,13 +9,25 @@ export function App() {
   const [prompt, setPrompt] = useState("");
   const [status, setStatus] = useState("");
   const { devices, selectedDeviceIndex, setSelectedDeviceIndex } = useDevices();
+  const [file, setFile] = useState<File | null>(null);
   const [stream] = useAtom(mediaStreamAtom);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   async function generateVideo(value: string): Promise<string> {
+    let imageBytes = null;
+    let mimeType = null;
+    if (file) {
+      const reader = new FileReader();
+      reader.readAsArrayBuffer(file);
+      imageBytes = await new Promise((resolve) => {
+        reader.onload = () => resolve(reader.result);
+      });
+      mimeType = file.type;
+    }
+
     const modelName = "veo-2.0-generate-001";
-    const body = {
+    let body = {
       instances: [
         {
           prompt: value,
@@ -26,6 +38,14 @@ export function App() {
         durationSeconds: 6,
       },
     };
+
+    if (imageBytes) {
+      // @ts-ignore
+      body.instances[0].image = {
+        imageBytes: imageBytes,
+        mimeType: mimeType,
+      };
+    }
 
     try {
       const response = await fetch(
@@ -121,7 +141,13 @@ export function App() {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext("2d");
         function draw() {
-          ctx!.drawImage(videoRef.current!, 0, 0, canvas!.width, canvas!.height);
+          ctx!.drawImage(
+            videoRef.current!,
+            0,
+            0,
+            canvas!.width,
+            canvas!.height,
+          );
           animationFrameRef.current = requestAnimationFrame(draw);
         }
         draw();
@@ -135,8 +161,94 @@ export function App() {
     };
   }, [stream]);
 
+  const filePreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  useEffect(() => {
+    console.log("file", file);
+    console.log("filePreviewCanvasRef", filePreviewCanvasRef.current);
+    if (file && filePreviewCanvasRef.current) {
+      console.log("yep");
+      const canvas = filePreviewCanvasRef.current;
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+      img.onload = () => {
+        if (img.width > img.height) {
+          console.log("landscape");
+          // size to 16x9
+          canvas.width = 960;
+          canvas.height = 540;
+          const imageAspect = img.width / img.height;
+          const canvasAspect = canvas.width / canvas.height;
+          const scale =
+            canvasAspect > imageAspect
+              ? canvas.width / img.width
+              : canvas.height / img.height;
+          const x = (canvas.width - img.width * scale) / 2;
+          const y = (canvas.height - img.height * scale) / 2;
+          ctx?.drawImage(img, x, y, img.width * scale, img.height * scale);
+        } else {
+          // size to 9x16
+          canvas.width = 540;
+          canvas.height = 960;
+          const imageAspect = img.width / img.height;
+          const canvasAspect = canvas.width / canvas.height;
+          const scale =
+            canvasAspect > imageAspect
+              ? canvas.width / img.width
+              : canvas.height / img.height;
+          const x = (canvas.width - img.width * scale) / 2;
+          const y = (canvas.height - img.height * scale) / 2;
+          ctx?.drawImage(img, x, y, img.width * scale, img.height * scale);
+        }
+      };
+      img.src = URL.createObjectURL(file);
+    }
+  }, [file]);
+
   return (
     <div className="w-full relative h-[100dvh]">
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        className="opacity-0 absolute top-0 left-0 pointer-events-none"
+      />
+      <div>File upload</div>
+      <div>
+        <canvas ref={filePreviewCanvasRef} />
+        <input
+          type="file"
+          accept="png, jpg, jpeg"
+          onChange={(e) => {
+            const fileList = e.target.files;
+            if (fileList && fileList.length > 0) {
+              setFile(fileList[0]);
+            }
+          }}
+        />
+      </div>
+      <input
+        className="w-full px-2 py-1 bg-neutral-700 text-neutral-200"
+        placeholder="Your prompt here"
+        type="text"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            setStatus("Generating video...");
+            generateVideo(prompt)
+              .then((videoUrl) => {
+                setStatus(`Video generated: ${videoUrl}`);
+              })
+              .catch((error) => {
+                setStatus(`Error: ${error.message}`);
+              });
+          }
+        }}
+      />
+      <div>{status}</div>
+
+      <div className="mt-8">Webcam test</div>
       <div className="grow">
         {devices.length > 0 ? (
           devices.length > 1 ? (
@@ -162,37 +274,12 @@ export function App() {
           )
         ) : null}
       </div>
-
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className="opacity-0 absolute top-0 left-0 pointer-events-none"
-      />
-      <canvas width={960} height={540}
+      <canvas
+        width={960}
+        height={540}
         className="display-none"
-        ref={canvasRef} />
-      <input
-        className="w-full px-2 py-1 bg-neutral-700 text-neutral-200"
-        placeholder="Your prompt here"
-        type="text"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            setStatus("Generating video...");
-            generateVideo(prompt)
-              .then((videoUrl) => {
-                setStatus(`Video generated: ${videoUrl}`);
-              })
-              .catch((error) => {
-                setStatus(`Error: ${error.message}`);
-              });
-          }
-        }}
+        ref={canvasRef}
       />
-      <div>{status}</div>
     </div>
   );
 }
