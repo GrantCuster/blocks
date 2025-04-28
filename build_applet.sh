@@ -1,12 +1,10 @@
 #!/bin/bash
 
 # Remove applet folder if it exists
-rm -rf applet
-
-# Create applet folder
-mkdir applet
+rm -rf applet/*
 
 cp -r src/* applet/
+cp manifest.json applet/
 # do not need right now
 # cp -r public/* applet/
 
