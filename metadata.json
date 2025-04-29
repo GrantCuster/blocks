@@ -1,0 +1,4 @@
+{
+  "name": "Veoselfie Test",
+  "requestFramePermissions": ["camera"]
+}

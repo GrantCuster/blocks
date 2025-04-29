@@ -4,7 +4,7 @@
 rm -rf applet/*
 
 cp -r src/* applet/
-cp manifest.json applet/
+cp metadata.json applet/
 # do not need right now
 # cp -r public/* applet/
 

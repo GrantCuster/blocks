@@ -1,7 +1,0 @@
-{
-  "name": "Veoselfie Test",
-  "version": "1.0",
-  "permissions": [
-    "camera"
-  ]
-}
