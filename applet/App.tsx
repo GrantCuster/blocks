@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { useDevices } from "./useDevices";
 import { mediaStreamAtom } from "./atoms";
 import { useAtom } from "jotai";
-import { PersonGeneration } from "@google/genai";
 
 const baseUrl = "https://generativelanguage.googleapis.com/v1beta";
 
@@ -30,7 +29,7 @@ export function App() {
       parameters: {
         sampleCount: 1,
         durationSeconds: 6,
-        personGeneration: "allow_adult"
+        person_generation: "allow_adult"
       },
     };
 
