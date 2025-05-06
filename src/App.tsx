@@ -4,11 +4,6 @@ import { mediaStreamAtom } from "./atoms";
 import { GenerateVideosParameters, GoogleGenAI } from "@google/genai";
 import { useAtom } from "jotai";
 
-const apiKey = localStorage.getItem("GEMINI_API_KEY") || process.env.API_KEY;
-const ai = new GoogleGenAI({
-  apiKey,
-});
-
 export function App() {
   const [prompt, setPrompt] = useState("Monkey climbing on shoulder");
   const [status, setStatus] = useState("");
@@ -19,54 +14,71 @@ export function App() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [sendImage, setSendImage] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [modelOption, setModelOption] = useState<
+    "veo-internal" | "veo-2.0-generate-001"
+  >("veo-internal");
+  const [apiKey, setApiKey] = useState<string | null>(null);
+
+  const [ai, setAi] = useState<GoogleGenAI | null>(null);
+
+  useEffect(() => {
+    setAi(
+      new GoogleGenAI({
+        apiKey: localStorage.getItem("GEMINI_API_KEY") || process.env.API_KEY,
+      }),
+    );
+  }, []);
 
   async function generateVideo(value: string): Promise<void> {
+    if (!ai) return;
     try {
-    let request: GenerateVideosParameters = {
-      model: "veo-2.0-generate-001",
-      prompt: value,
-      config: {
-        personGeneration: "allow_adult",
-        aspectRatio: "16:9",
-        numberOfVideos: 1,
-      },
-    };
-
-    if (sendImage) {
-      request.image = {
-        imageBytes: canvasRef.current?.toDataURL("image/jpeg").split(",")[1],
-        mimeType: "image/jpeg",
+      console.log(
+        "generating video with " + apiOptions + " and " + modelOption,
+      );
+      let request: GenerateVideosParameters = {
+        model: modelOption,
+        prompt: value,
+        config: {
+          aspectRatio: "16:9",
+          numberOfVideos: 1,
+        },
       };
-    }
 
-    let operation = await ai.models.generateVideos(request);
-
-    while (!operation.done) {
-      await new Promise((resolve) => setTimeout(resolve, 10000));
-      operation = await ai.operations.getVideosOperation({
-        operation: operation,
-      });
-      console.log("Operation status:", operation);
-    }
-
-    if (operation.response) {
-      if (operation.response.generatedVideos) {
-        operation.response.generatedVideos.forEach(async (generatedVideo) => {
-          const resp = await fetch(
-            `${generatedVideo.video?.uri}&key=${apiKey}`,
-          );
-          const blob = await resp.blob();
-          const reader = new FileReader();
-          reader.onload = () => {
-            const base64data = reader.result as string;
-            setVideoUrl(base64data.split(",")[1]);
-          };
-          reader.readAsDataURL(blob);
-        });
-      } else {
-        setStatus(`Error: ${JSON.stringify(operation.response)}`);
+      if (sendImage) {
+        request.image = {
+          imageBytes: canvasRef.current?.toDataURL("image/jpeg").split(",")[1],
+          mimeType: "image/jpeg",
+        };
       }
-    }
+
+      let operation = await ai.models.generateVideos(request);
+
+      while (!operation.done) {
+        await new Promise((resolve) => setTimeout(resolve, 10000));
+        operation = await ai.operations.getVideosOperation({
+          operation: operation,
+        });
+        console.log("Operation status:", operation);
+      }
+
+      if (operation.response) {
+        if (operation.response.generatedVideos) {
+          operation.response.generatedVideos.forEach(async (generatedVideo) => {
+            const resp = await fetch(
+              `${generatedVideo.video?.uri}`,
+            );
+            const blob = await resp.blob();
+            const reader = new FileReader();
+            reader.onload = () => {
+              const base64data = reader.result as string;
+              setVideoUrl(base64data.split(",")[1]);
+            };
+            reader.readAsDataURL(blob);
+          });
+        } else {
+          setStatus(`Error: ${JSON.stringify(operation.response)}`);
+        }
+      }
     } catch (error) {
       console.error("Error generating video:", error);
       setStatus(`Error: ${error}`);
@@ -155,6 +167,29 @@ export function App() {
         className="display-none"
         ref={canvasRef}
       />
+      <div className="flex gap-2">
+        <div>Model:</div>
+        <label>
+          <input
+            type="radio"
+            name="modelOption"
+            value="veo-internal"
+            checked={modelOption === "veo-internal"}
+            onChange={() => setModelOption("veo-internal")}
+          />{" "}
+          veo-internal
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="modelOption"
+            value="veo-2.0-generate-001"
+            checked={modelOption === "veo-2.0-generate-001"}
+            onChange={() => setModelOption("veo-2.0-generate-001")}
+          />{" "}
+          veo-2.0-generate-001
+        </label>
+      </div>
       <label className="flex gap-2">
         <input
           type="checkbox"
