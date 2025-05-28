@@ -26,3 +26,7 @@ input, textarea {
 .border, .border-l, .border-t, .border-b, .border-r {
   border-color: theme('colors.neutral.700');
 }
+
+button {
+  pointer: cursor;
+}
