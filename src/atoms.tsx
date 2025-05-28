@@ -2,7 +2,6 @@ import { atom } from "jotai";
 import { atomWithStorage } from "jotai/utils";
 import { BlockType, ModeType, StateRefType } from "./types";
 import { defaultRenderPrompt } from "./consts";
-import { v4 as uuid } from "uuid";
 import { starterBlocks } from "./starterBlocks";
 
 export const CameraAtom = atom({
